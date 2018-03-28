@@ -42,18 +42,19 @@ int main(int argc, char *argv[])
         error("ERROR connecting");
     while (1){
 	    
-	    //bzero(buffer,256);
+	    bzero(buffer,256);
 	    n = read(sockfd,buffer,255);
 	    if (n < 0) 
 	         error("ERROR reading from socket");
-	    printf("Here is you message: %s\n",buffer);
-		printf("Please enter the message: ");
+		printf("Stranger: ");
+	    printf("%s\n",buffer);
+		printf("You: ");
 	    bzero(buffer,256);
 	    fgets(buffer,255,stdin);
 	    n = write(sockfd,buffer,strlen(buffer));
 	    if (n < 0) 
 	         error("ERROR writing to socket");
-	   if (strcmp(buffer,"bye\n")==0){ 
+	    if (strcmp(buffer,"bye\n")==0) {
 			close(sockfd);
 			return 0;
 		}

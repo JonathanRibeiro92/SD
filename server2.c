@@ -45,10 +45,11 @@ int main(int argc, char *argv[])
           error("ERROR on accept");
 	  if (newsockfd2 < 0) 
           error("ERROR on accept");
-     while(1){ 
+     while(1){
+		//le do client1
         n = read(newsockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
-        
+        // escreve no client2
         n = write(newsockfd2,buffer,strlen(buffer));
         if (n < 0) error("ERROR writing to socket");
 		
@@ -58,6 +59,18 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 		bzero(buffer,256);
-        fgets(buffer,255,stdin);
+        //fgets(buffer,255,stdin);
+		//le do client2
+		n = read(newsockfd2,buffer,255);
+        if (n < 0) error("ERROR reading from socket");
+        // escreve no client1
+        n = write(newsockfd,buffer,strlen(buffer));
+        if (n < 0) error("ERROR writing to socket");
+		
+	    /* if (strcmp(buffer,"bye\n")==0){ 
+			close(newsockfd);
+			close(newsockfd2);
+			return 0;
+		}*/
      }
 }
