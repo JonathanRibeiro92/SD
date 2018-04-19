@@ -5,6 +5,76 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <signal.h>
+
+
+#define MAXCLIENTS 5
+
+
+pthread_t* threads;
+int* sockets;
+int t_count = 0;
+pthread_t main_thread;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+//TODO
+void *connection_handler(void*);
+
+
+void *receiveMessage(void *socket){
+    int sockfd, n, i;
+    char buffer[256];
+
+    sockfd = *(int *)socket;
+    bzero(buffer, 256);
+
+    while ((strcmp(buffer,"bye") != 0)||signal(15,tratasinal){
+        bzero(buffer,256);
+        //fgets(buffer,255,stdin);
+		//le do client
+		n = read(newsockfd2,buffer,255);
+        if (n < 0) error("ERROR reading from socket");
+        broadcast(buffer);
+        printf("%d sent: %s \n", sockfd, buffer);
+
+    }
+    //Passando pro próximo client do chat
+    for (i = 0;i < MAXCLIENTS; i++) {
+        if (sockets[i] == sockfd) {
+    		position = i;
+    		break;
+    	}
+    }
+    pthread_mutex_lock(&mutex);
+    sockets[position] = -1;
+    pthread_mutex_unlock(&mutex);
+    
+    t_count--;
+    //close(sockfd);
+    
+    printf("Killing client %d \n", sockfd);
+	
+	if (t_count == 0) pthread_cancel(main_thread);
+
+    return NULL;
+}
+
+
+void broadcast(char *buffer){
+    int i;
+    int sockfd, n;
+    
+    for (i = 0; i < t_count; i++){
+        sockfd = sockets[i];
+        
+		if (sockfd != -1){
+			n = write(sockfd, buffer, strlen(buffer));
+			if (n < 0) error("ERROR writing to socket");
+		}
+    }
+}
+
 
 void error(char *msg)
 {
