@@ -5,11 +5,11 @@ chat :
 	server client
 
 #compila o servidor:
-make server :
+server :
 	gcc server.c -o server -lpthread -Wall -ansi
 
 #compila o cliente:
-make client :
+client :
 	gcc client.c -o client -lpthread -Wall -ansi
 
 
