@@ -30,7 +30,7 @@ void *receiveMessage(void *socket){
     sockfd = *(int *)socket;
     bzero(buffer, 256);
 
-    while ((strcmp(buffer,"bye") != 0)||signal(15,tratasinal){
+    while ((strcmp(buffer,"bye") != 0){//||signal(15,tratasinal){
         bzero(buffer,256);
         //fgets(buffer,255,stdin);
 		//le do client
