@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <signal.h>
+#include <pthread.h>
 
 
 #define MAXCLIENTS 5
