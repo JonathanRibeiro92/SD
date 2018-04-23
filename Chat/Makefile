@@ -1,8 +1,8 @@
 CC=gcc 
 #CFLAGS=-Wall -ansi
 
-chat :
-	server client
+#chat :
+#	server client
 
 #compila o servidor:
 server :

@@ -19,41 +19,41 @@ pthread_t main_thread;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-//TODO
+
 void *connection_handler(void*);
 
 
 void *receiveMessage(void *socket){
-    int sockfd, n, i;
+    int sockfd, n, i, position;
     char buffer[256];
 
     sockfd = *(int *)socket;
     bzero(buffer, 256);
 
-    while ((strcmp(buffer,"bye") != 0){//||signal(15,tratasinal){
+    while ((strcmp(buffer,"bye") != 0)){/*||signal(15,tratasinal){ */
         bzero(buffer,256);
-        //fgets(buffer,255,stdin);
-		//le do client
-		n = read(newsockfd2,buffer,255);
+        /*fgets(buffer,255,stdin);*/
+		/* le do client */
+		n = read(sockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
         broadcast(buffer);
         printf("%d sent: %s \n", sockfd, buffer);
 
     }
-    //Passando pro próximo client do chat
+    /*Passando pro próximo client do chat*/
     for (i = 0;i < MAXCLIENTS; i++) {
         if (vet_sockets[i] == sockfd) {
     		position = i;
     		break;
     	}
     }
-    //trava da thread
+    /*trava da thread*/
     pthread_mutex_lock(&mutex);
     vet_sockets[position] = -1;
     pthread_mutex_unlock(&mutex);
     
     t_count--;
-    //close(sockfd);
+    /*close(sockfd);*/
     
     printf("Killing client %d \n", sockfd);
 	
@@ -64,16 +64,16 @@ void *receiveMessage(void *socket){
 
 void *get_clients(void *socket){
     struct sockaddr_in cli_addr;
-    int clilen, newsockfd, i, sockfd, pos_vazio;
+    int cli_len, newsockfd, i, sockfd, pos_vazio;
 
     sockfd = *(int *)socket;
 
-    //do while - executa ao menos uma vez
+    /*do while - executa ao menos uma vez*/
     do{
         listen(sockfd,5);
         pos_vazio = -1;
 
-        //navega no vetor de clientes pra pegar a primeira posição vazia
+        /*navega no vetor de clientes pra pegar a primeira posição vazia*/
         pthread_mutex_lock(&mutex);
         for(i=0; i < MAXCLIENTS; i++){
             if(vet_sockets[i] == -1){
@@ -84,7 +84,7 @@ void *get_clients(void *socket){
         pthread_mutex_unlock(&mutex);
 
         if(pos_vazio != -1){
-            clilen = sizeof(cli_addr);
+            cli_len = sizeof(cli_addr);
             newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_len);
             if(newsockfd<0){
                 error("ERROR on accept");
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
             sizeof(serv_addr)) < 0) 
             error("ERROR on binding");
     
-	//Inicializando vetor de sockets
+	/*Inicializando vetor de sockets*/
     for (i = 0; i < MAXCLIENTS; i++){
 		vet_sockets[i] = -1;
     }
