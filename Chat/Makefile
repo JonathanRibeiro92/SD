@@ -1,8 +1,8 @@
 CC=gcc 
 #CFLAGS=-Wall -ansi
 
-#chat :
-#	server client
+all :
+	server client
 
 #compila o servidor:
 server :
@@ -12,7 +12,6 @@ server :
 client :
 	gcc client.c -o client -lpthread -Wall -ansi
 
-
+#remove tudo
 clean :
-	rm server *.o
-	rm client *.o
+	rm  -f client server
