@@ -32,6 +32,17 @@ void *receiveMessage(void *socket){
     bzero(buffer, 256);
 
     while ((strcmp(buffer,"bye") != 0)){/*||signal(15,tratasinal){ */
+        
+
+    
+    /*Passando pro próximo client do chat*/
+    for (i = 0;i < MAXCLIENTS; i++) {
+        if (vet_sockets[i] == sockfd) {
+    		position = i;
+    		break;
+    	}
+    }
+
         bzero(buffer,256);
         /*fgets(buffer,255,stdin);*/
 		/* le do client */
@@ -39,14 +50,6 @@ void *receiveMessage(void *socket){
         if (n < 0) error("ERROR reading from socket");
         broadcast(buffer);
         printf("%d sent: %s \n", sockfd, buffer);
-
-    }
-    /*Passando pro próximo client do chat*/
-    for (i = 0;i < MAXCLIENTS; i++) {
-        if (vet_sockets[i] == sockfd) {
-    		position = i;
-    		break;
-    	}
     }
     /*trava da thread*/
     pthread_mutex_lock(&mutex);

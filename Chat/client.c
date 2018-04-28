@@ -7,6 +7,12 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+
+
+
+#define h_addr h_addr_list[0] /* for backward compatibility */
+
+
 pthread_t listener, writer;
 
 void error(char *msg)
@@ -17,7 +23,7 @@ void error(char *msg)
 
 
 void *receiveMessage(void *socket){
-    int sockfd, n, i;
+    int sockfd, n;
     char buffer[256];
 
     sockfd = *(int *)socket;
@@ -27,7 +33,7 @@ void *receiveMessage(void *socket){
         bzero(buffer,256);
 		n = read(sockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
-        printf("Message received: %s\n",buffer);
+        printf("\nMessage received: %s\n",buffer);
 
     }
     pthread_cancel(writer);
@@ -39,10 +45,9 @@ void *sendMessage (void *socket){
     int sockfd, n;
     
     sockfd = *(int *)socket;
-    bzero(buffer,256);
     
     while (strcmp(buffer, "bye\n") != 0) {
-        printf("Please enter the message: ");
+        printf("\nPlease enter the message: ");
         
         bzero(buffer,256);
         fgets(buffer,255,stdin);
@@ -71,7 +76,7 @@ void doConnect(int sockfd, int portno, struct hostent *server) {
     bzero((char *) &serv_addr, sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
-    bcopy((char *) server->h_addr_list, (char *) &serv_addr.sin_addr.s_addr, server->h_length);
+    bcopy((char *) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
 
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
