@@ -4,6 +4,8 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <string.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 pthread_t listener, writer;
 
@@ -59,7 +61,7 @@ int initSocket(){
     if (sockfd < 0){
         error("ERROR opening socket");
     }
-    return sockfd
+    return sockfd;
 }
 
 
@@ -69,7 +71,7 @@ void doConnect(int sockfd, int portno, struct hostent *server) {
     bzero((char *) &serv_addr, sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
-    bcopy((char *) server->h_addr, (char *) &serv_addr.sin_addr.s_addr, server->h_length);
+    bcopy((char *) server->h_addr_list, (char *) &serv_addr.sin_addr.s_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
 
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
@@ -79,7 +81,7 @@ void doConnect(int sockfd, int portno, struct hostent *server) {
 
 int main(int argc, char *argv[]){
     
-    int sockfd, portno, n;
+    int sockfd, portno;
     struct hostent *server;
 
     char buffer[256];
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]){
        exit(0);
     }
 
-    //inicializa socket
+    /* inicializa socket*/
     sockfd = initSocket();
     
     server = gethostbyname(argv[1]);
@@ -96,8 +98,8 @@ int main(int argc, char *argv[]){
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
     }
-    //Realiza conexão com o server
-    doConnect(sockfd, atoi(argv[2]), server)
+    /*Realiza conexão com o server*/
+    doConnect(sockfd, atoi(argv[2]), server);
     
     
     pthread_create(&listener, NULL, receiveMessage, &sockfd);

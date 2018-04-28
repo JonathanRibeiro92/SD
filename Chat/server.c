@@ -7,6 +7,7 @@
 #include <string.h>
 #include <signal.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 
 #define MAXCLIENTS 5
@@ -130,8 +131,8 @@ int initSocket(){
     if (sockfd < 0){
         error("ERROR opening socket");
     }
-    return sockfd
-}
+    return sockfd;
+}   
 
 void doBind(int sockfd, int portno){
     struct sockaddr_in serv_addr;
@@ -157,9 +158,9 @@ int main(int argc, char *argv[])
         fprintf(stderr,"ERROR, no port provided\n");
         exit(1);
     }
-    //inicia Socket
+    /*inicia Socket*/
     sockfd = initSocket();
-    //executa bind
+    /*executa bind*/
     doBind(sockfd, atoi(argv[1]));
 
     

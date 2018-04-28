@@ -1,8 +1,8 @@
-CC=gcc 
+CC = gcc 
 #CFLAGS=-Wall -ansi
 
 all :
-	server client
+	server	client
 
 #compila o servidor:
 server :
