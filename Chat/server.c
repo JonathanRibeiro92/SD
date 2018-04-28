@@ -125,10 +125,30 @@ void error(char *msg)
     exit(1);
 }
 
+int initSocket(){
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0){
+        error("ERROR opening socket");
+    }
+    return sockfd
+}
+
+void doBind(int sockfd, int portno){
+    struct sockaddr_in serv_addr;
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
+
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        error("ERROR on binding");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     int sockfd, portno, i;
-    struct sockaddr_in serv_addr;
      
     vet_threads = malloc(5 * sizeof(pthread_t));
     vet_sockets = malloc(5 * sizeof(int));
@@ -137,17 +157,11 @@ int main(int argc, char *argv[])
         fprintf(stderr,"ERROR, no port provided\n");
         exit(1);
     }
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
-        error("ERROR opening socket");
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = atoi(argv[1]);
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(portno);
-    if (bind(sockfd, (struct sockaddr *) &serv_addr,
-            sizeof(serv_addr)) < 0) 
-            error("ERROR on binding");
+    //inicia Socket
+    sockfd = initSocket();
+    //executa bind
+    doBind(sockfd, atoi(argv[1]));
+
     
 	/*Inicializando vetor de sockets*/
     for (i = 0; i < MAXCLIENTS; i++){
