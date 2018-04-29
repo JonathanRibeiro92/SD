@@ -6,6 +6,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <signal.h>
 
 
 
@@ -33,10 +34,17 @@ void *receiveMessage(void *socket){
         bzero(buffer,256);
 		n = read(sockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
-        printf("\nMessage received: %s\n",buffer);
+        
+
+        if(!strcmp(buffer, "server-close-connection")){
+            printf("\nCommand kill from server\n");
+            closeConn(SIGTERM,sockfd);
+        }else{
+            printf("\nMessage received: %s\n",buffer);
+        }
 
     }
-    pthread_cancel(writer);
+
     return NULL;
 }
 
@@ -46,7 +54,7 @@ void *sendMessage (void *socket){
     
     sockfd = *(int *)socket;
     
-    while (strcmp(buffer, "bye\n") != 0) {
+    do{
         printf("\nPlease enter the message: ");
         
         bzero(buffer,256);
@@ -54,9 +62,9 @@ void *sendMessage (void *socket){
 
         n = write(sockfd,buffer, strlen(buffer)-1);
         if (n < 0) error("ERROR reading from socket");
-    }
+    }while (strcmp(buffer, "bye\n") != 0);
     
-    pthread_cancel(listener);
+    
     return NULL;
 }
 
@@ -82,6 +90,28 @@ void doConnect(int sockfd, int portno, struct hostent *server) {
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         error("ERROR connecting");
     }
+}
+
+/*função para fechar as conexões*/
+void closeConn(int sinal, int sockfd){
+    char* bye = "bye";
+
+    if (sinal == SIGINT) {
+        printf("\nSignal 2\nClosing connection...\n");
+
+        if (write(sockfd, bye, strlen(bye)) < 0) {
+            printf("ERROR closing connection with server.\n");
+        }
+    }
+
+    /*Encerrando as threads*/
+    pthread_cancel(listener);
+    pthread_cancel(writer);
+    /*fechando o socket*/
+    close(sockfd);
+
+    exit(0);
+
 }
 
 int main(int argc, char *argv[]){
@@ -110,10 +140,15 @@ int main(int argc, char *argv[]){
     pthread_create(&listener, NULL, receiveMessage, &sockfd);
     pthread_create(&writer, NULL, sendMessage, &sockfd);
     
+    /*Ctrl C*/
+    signal(SIGINT, closeConn);
+    /*KILL*/
+    signal(SIGTERM, closeConn);
+
     pthread_join(listener, NULL);
     pthread_join(writer, NULL);
     
-    close(sockfd);
+    
    
     return 0;
 

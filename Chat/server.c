@@ -20,10 +20,6 @@ pthread_t main_thread;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-
-void *connection_handler(void*);
-
-
 void *receiveMessage(void *socket){
     int sockfd, n, i, position;
     char buffer[256];
@@ -31,17 +27,17 @@ void *receiveMessage(void *socket){
     sockfd = *(int *)socket;
     bzero(buffer, 256);
 
-    while ((strcmp(buffer,"bye") != 0)){/*||signal(15,tratasinal){ */
+    while ((strcmp(buffer,"bye") != 0)){
         
 
     
-    /*Passando pro próximo client do chat*/
-    for (i = 0;i < MAXCLIENTS; i++) {
-        if (vet_sockets[i] == sockfd) {
-    		position = i;
-    		break;
-    	}
-    }
+        /*Passando pro próximo client do chat*/
+        for (i = 0;i < MAXCLIENTS; i++) {
+            if (vet_sockets[i] == sockfd) {
+                position = i;
+                break;
+            }
+        }
 
         bzero(buffer,256);
         /*fgets(buffer,255,stdin);*/
@@ -95,7 +91,6 @@ void *get_clients(void *socket){
             }
             pthread_create(&vet_threads[pos_vazio], NULL, receiveMessage, &newsockfd);
 			vet_sockets[pos_vazio] = newsockfd;
-
             t_count++;
             printf("Connected: %d \n", t_count);
         }
@@ -150,6 +145,25 @@ void doBind(int sockfd, int portno){
     }
 }
 
+void closeSocket(int sinal, int sockfd){
+    int i;
+    char* closeConn = "server-close-connection";
+
+    for (i = 0; i < MAXCLIENTS; ++i)
+    {
+        if (vet_sockets[i] != -1) {
+            printf("\nSending message to the client [%d] to close.\n", i);
+            if (write(vet_sockets[i], closeConn, strlen(closeConn)) < 0) {
+                printf("ERRO on close client sockfd: [%d].\n", vet_sockets[i]);
+            }
+        }
+    }
+
+    close(sockfd);
+    exit(0);
+}
+
+
 int main(int argc, char *argv[])
 {
     int sockfd, portno, i;
@@ -161,7 +175,7 @@ int main(int argc, char *argv[])
         fprintf(stderr,"ERROR, no port provided\n");
         exit(1);
     }
-    /*inicia Socket*/
+    /*inicia Socket do server*/
     sockfd = initSocket();
     /*executa bind*/
     doBind(sockfd, atoi(argv[1]));
@@ -172,14 +186,15 @@ int main(int argc, char *argv[])
 		vet_sockets[i] = -1;
     }
     
+    signal(SIGINT, closeSocket);
+
 	pthread_create(&main_thread, NULL, get_clients, &sockfd);
 	
 	pthread_join(main_thread, NULL);
 	
 	free(vet_threads);
 	free(vet_sockets);
-     
-    close(sockfd);
+    
      
     return 0; 
 }
