@@ -37,10 +37,11 @@ void *receiveMessage(void *socket){
         
 
         if(!strcmp(buffer, "server-close-connection")){
-            printf("\nCommand kill from server\n");
+            printf("\nCommand close from server\n");
             closeConn(SIGTERM,sockfd);
         }else{
-            printf("\nMessage received: %s\n",buffer);
+            printf("\nMessage received from %d: %s\n",socket,buffer);
+            printf("\nPlease enter the message: ");
         }
 
     }
@@ -94,16 +95,17 @@ void doConnect(int sockfd, int portno, struct hostent *server) {
 
 /*função para fechar as conexões*/
 void closeConn(int sinal, int sockfd){
-    char* bye = "bye";
-
+    char* auxbye = "bye";
+    int n;
     if (sinal == SIGINT) {
         printf("\nSignal 2\nClosing connection...\n");
-
-        if (write(sockfd, bye, strlen(bye)) < 0) {
+        n = write(sockfd, auxbye, strlen(auxbye));
+        if (n < 0) {
             printf("ERROR closing connection with server.\n");
         }
     }
 
+    printf("Closing connection...");
     /*Encerrando as threads*/
     pthread_cancel(listener);
     pthread_cancel(writer);

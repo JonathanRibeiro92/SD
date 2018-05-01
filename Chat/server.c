@@ -21,35 +21,36 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 void *receiveMessage(void *socket){
-    int sockfd, n, i, position;
+    int sockfd, i, position;
     char buffer[256];
 
     sockfd = *(int *)socket;
-    bzero(buffer, 256);
-
-    while ((strcmp(buffer,"bye") != 0)){
-        
-
     
+
+   do{
+       int n;
+       bzero(buffer, 256);
+       n = read(sockfd,buffer,255);
+       if (n < 0) error("ERROR reading from socket");
         /*Passando pro próximo client do chat*/
         for (i = 0;i < MAXCLIENTS; i++) {
-            if (vet_sockets[i] == sockfd) {
-                position = i;
-                break;
+            if ((vet_sockets[i] != -1) && vet_sockets[i]!= sockfd) {
+                /*le do client*/
+                n = write(vet_sockets[i], buffer, strlen(buffer));
+			    if (n < 0){
+                    error("ERROR writing to socket");
+                }else {
+                    printf("%d sent: %s \n", vet_sockets[i], buffer);
+                }
+                
             }
         }
-
-        bzero(buffer,256);
-        /*fgets(buffer,255,stdin);*/
-		/* le do client */
-		n = read(sockfd,buffer,255);
-        if (n < 0) error("ERROR reading from socket");
-        broadcast(buffer);
-        printf("%d sent: %s \n", sockfd, buffer);
-    }
+        
+        
+    } while ((strcmp(buffer,"bye") != 0));
     /*trava da thread*/
     pthread_mutex_lock(&mutex);
-    vet_sockets[position] = -1;
+    vet_sockets[sockfd-1] = -1;
     pthread_mutex_unlock(&mutex);
     
     t_count--;
@@ -103,19 +104,6 @@ void *get_clients(void *socket){
 }
 
 
-void broadcast(char *buffer){
-    int i;
-    int sockfd, n;
-    
-    for (i = 0; i < t_count; i++){
-        sockfd = vet_sockets[i];
-        
-		if (sockfd != -1){
-			n = write(sockfd, buffer, strlen(buffer));
-			if (n < 0) error("ERROR writing to socket");
-		}
-    }
-}
 
 
 void error(char *msg)
@@ -145,7 +133,7 @@ void doBind(int sockfd, int portno){
     }
 }
 
-void closeSocket(int sinal, int sockfd){
+void closeSocket(int sinal){
     int i;
     char* closeConn = "server-close-connection";
 
@@ -154,12 +142,12 @@ void closeSocket(int sinal, int sockfd){
         if (vet_sockets[i] != -1) {
             printf("\nSending message to the client [%d] to close.\n", i);
             if (write(vet_sockets[i], closeConn, strlen(closeConn)) < 0) {
-                printf("ERRO on close client sockfd: [%d].\n", vet_sockets[i]);
+                printf("ERROR on close client sockfd: [%d].\n", vet_sockets[i]);
             }
         }
     }
 
-    close(sockfd);
+    close(vet_sockets);
     exit(0);
 }
 
