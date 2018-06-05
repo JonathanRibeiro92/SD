@@ -26,6 +26,9 @@ int sum_circle_count(int part)
 
 int main(int argc, char *argv[])
 {
+
+    clock_t begin = clock();
+
     if (argc != 2) {
         fprintf(stderr, "Faltou numero de elementos\n");
         exit(1);
@@ -66,5 +69,13 @@ int main(int argc, char *argv[])
     }
 
     MPI_Finalize();
+
+    clock_t end = clock();
+
+    if(rank == 0){
+        double tempo_de_exec = (double) (end-begin)/CLOCKS_PER_SEC;
+        printf("Tempo de Execucao: %f", tempo_de_exec);
+    }
+
     return 0;
 }
