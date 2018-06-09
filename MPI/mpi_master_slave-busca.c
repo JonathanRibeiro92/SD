@@ -35,16 +35,16 @@ void master(nprocs, elem, block_size, v_in_size, v_in, found)
 	MPI_Status status;
 	found[0] = FALSE;
 	//printf("0-master sends <elem=%lf> to all slaves\n", elem);
-	for (rank_i=1; rank_i<nprocs; rank_i++)
+	for(rank_i=1; rank_i<nprocs; rank_i++)
 		MPI_Send(&elem, 1, MPI_DOUBLE, rank_i, TAG_ELEM, MPI_COMM_WORLD);
 	//printf("1-master sends 1 work to all slaves\n");
-	for (rank_i=1; rank_i<nprocs && v_in_pos<v_in_size; rank_i++)
+	for(rank_i=1; rank_i<nprocs && v_in_pos<v_in_size; rank_i++)
 	{
 		MPI_Send(&v_in[v_in_pos], block_size, MPI_DOUBLE, rank_i, TAG_WORK, MPI_COMM_WORLD);
 		v_in_pos += block_size;
 	}
 	//printf("2-master receive results from slaves and sends new works until works ends\n");
-	while (v_in_pos<v_in_size && !(found[0]))
+	while(v_in_pos<v_in_size && !(found[0]))
 	{
 		MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
 		found[0] = found[0] || result;
@@ -58,7 +58,7 @@ void master(nprocs, elem, block_size, v_in_size, v_in, found)
 	}
 
 	//printf("3-master receives last results from all slaves\n");
-	for (rank_i=1; rank_i<nprocess_ativado; rank_i++)
+	for(rank_i=1; rank_i<nprocess_ativado; rank_i++)
 	{
 		MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
 		found[0] = found[0] || result;
@@ -72,12 +72,12 @@ void master(nprocs, elem, block_size, v_in_size, v_in, found)
 
 	
 		
-}
+
 
 
 
 	//printf("4-master sends termination TAG\n");
-	for (rank_i=1; rank_i<nprocs; rank_i++)
+	for(rank_i=1; rank_i<nprocs; rank_i++)
 		MPI_Send(NULL, 0, MPI_DOUBLE, rank_i, TAG_END, MPI_COMM_WORLD);
 }
 
@@ -156,12 +156,12 @@ int main(int argc, char *argv[])
 	int rank, nprocs, block_size, v_in_size=100;
 	double elem, *v_in;
 
-	int found[2];
+	int found[2] = {-1,-1};
 	
-	for(int i = 0; i < found.length; i++)
-	{
-		found[i] = -1;
-	}
+	// for(int i = 0; i < found.length; i++)
+	// {
+	// 	found[i] = -1;
+	// }
 	
 
 	MPI_Init(&argc, &argv);
@@ -172,9 +172,9 @@ int main(int argc, char *argv[])
 	if(nprocs==1){
 		v_in  = (double*) calloc(v_in_size, sizeof(double));
 		init_vector(v_in_size, v_in);
-		int result[1];
-		slaves_function(elem, v_in_size, v_in, &result[0]);
-		found[0] = found[0] || result;
+		
+		slaves_function(elem, v_in_size, v_in, &found[0]);
+		
 
 		if(found[0]){
 			printf("Found by serial\n");
