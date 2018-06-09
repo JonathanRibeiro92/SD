@@ -181,6 +181,7 @@ int main(int argc, char *argv[])
 		}else{
 			printf("Not found by serial\n");
 		}
+		MPI_Finalize();
 		return 0;
 
 	}else{
