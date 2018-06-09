@@ -31,9 +31,9 @@ void master(nprocs, elem, block_size, v_in_size, v_in, found)
 	int nprocs, block_size, v_in_size, *found;
 	double elem, *v_in;
 {
-	int result, rank_i, v_in_pos = 0;
+	int result, rank_i, v_in_pos = 0, nprocess_ativado = 0;
 	MPI_Status status;
-	*found = FALSE;
+	found[0] = FALSE;
 	//printf("0-master sends <elem=%lf> to all slaves\n", elem);
 	for (rank_i=1; rank_i<nprocs; rank_i++)
 		MPI_Send(&elem, 1, MPI_DOUBLE, rank_i, TAG_ELEM, MPI_COMM_WORLD);
@@ -44,19 +44,38 @@ void master(nprocs, elem, block_size, v_in_size, v_in, found)
 		v_in_pos += block_size;
 	}
 	//printf("2-master receive results from slaves and sends new works until works ends\n");
-	while (v_in_pos<v_in_size && !(*found))
+	while (v_in_pos<v_in_size && !(found[0]))
 	{
 		MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
-		*found = *found || result;
+		found[0] = found[0] || result;
 		MPI_Send(&v_in[v_in_pos], block_size, MPI_DOUBLE, status.MPI_SOURCE, TAG_WORK, MPI_COMM_WORLD);
 		v_in_pos  += block_size;
 	}
+
+	//pega o rank de quem achou
+	if(found[0]){
+		found[1] = status.MPI_SOURCE;
+	}
+
 	//printf("3-master receives last results from all slaves\n");
-	for (rank_i=1; rank_i<nprocs; rank_i++)
+	for (rank_i=1; rank_i<nprocess_ativado; rank_i++)
 	{
 		MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE, TAG_RESULT, MPI_COMM_WORLD, &status);
-		*found = *found || result;
+		found[0] = found[0] || result;
+
+		if(found[0]){
+			if(found[1]==-1){
+				found[1] = status.MPI_SOURCE;
+			}
+		}
 	}
+
+	
+		
+}
+
+
+
 	//printf("4-master sends termination TAG\n");
 	for (rank_i=1; rank_i<nprocs; rank_i++)
 		MPI_Send(NULL, 0, MPI_DOUBLE, rank_i, TAG_END, MPI_COMM_WORLD);
@@ -69,6 +88,8 @@ void slaves_function(double elem, int v_in_size, double *v_in, int *found)
 	for (i=0; i<v_in_size && !(*found); i++)
 			*found = (v_in[i]==elem);
 }
+
+
 
 int slave(int v_in_size, double *v_in)
 {
@@ -132,30 +153,63 @@ void read_arguments(int argc, char **argv, double *elem, int *block_size, int *v
 
 int main(int argc, char *argv[])
 {
-	int found, rank, nprocs, block_size, v_in_size=100;
+	int rank, nprocs, block_size, v_in_size=100;
 	double elem, *v_in;
+
+	int found[2];
+	
+	for(int i = 0; i < found.length; i++)
+	{
+		found[i] = -1;
+	}
+	
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	read_arguments(argc, argv, &elem, &block_size, &v_in_size);
-	if (rank == 0)
-	{
+
+	if(nprocs==1){
 		v_in  = (double*) calloc(v_in_size, sizeof(double));
 		init_vector(v_in_size, v_in);
-		//print_vector(v_in_size, v_in);
-		master(nprocs, elem, block_size, v_in_size, v_in, &found);
-		printf("Found=%d\n", found);
-		free(v_in);
+		int result[1];
+		slaves_function(elem, v_in_size, v_in, &result[0]);
+		found[0] = found[0] || result;
+
+		if(found[0]){
+			printf("Found by serial\n");
+		}else{
+			printf("Not found by serial\n");
+		}
+		return 0;
+
+	}else{
+
+
+
+		if (rank == 0)
+		{
+			v_in  = (double*) calloc(v_in_size, sizeof(double));
+			init_vector(v_in_size, v_in);
+			//print_vector(v_in_size, v_in);
+			master(nprocs, elem, block_size, v_in_size, v_in, &found);
+			if(found[0]){
+				printf("Found in process rank (%d)\n", found[1]); //dá o rank	
+			}else{
+				printf("Sorry, not found.\n"); 
+			}
+			
+			free(v_in);
+		}
+		else
+		{
+			v_in_size  = block_size;
+			v_in  = (double*) calloc(v_in_size, sizeof(double));
+			slave(v_in_size, v_in);
+			free(v_in);
+		}	
+		MPI_Finalize();
+		return 0;
 	}
-	else
-	{
-		v_in_size  = block_size;
-		v_in  = (double*) calloc(v_in_size, sizeof(double));
-		slave(v_in_size, v_in);
-		free(v_in);
-	}	
-	MPI_Finalize();
-	return 0;
 }
 
