@@ -5,7 +5,7 @@
 #include <time.h>
 #include <assert.h>
 
-#define TAM_VET 100000
+#define TAM_VET 1000
 #define EPSILON 0.00009
 
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     float min_local = 10000;
     float global_min;
     int interacoes_total;
-
+    int interacoes;
     MPI_Init(&argc,&argv);
 
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
 
 	// }
-    int part = TAM_VET / size;
+    //int part = TAM_VET / size;
     int init = part * rank;
     
 
@@ -75,12 +75,12 @@ int main(int argc, char *argv[])
 
     while(1)
     {
-        for (i = init; i < (init+part); i++) {
+        for (int i = init; i < (init+part); i++) {
             interacoes += 1;
-            vector[i] *= 0.9;
-            if(vector[i] <= min_local)
+            vetor_rcv[i] *= 0.9;
+            if(vetor_rcv[i] <= min_local)
             {
-                min_local = vector[i];
+                min_local = vetor_rcv[i];
                 if(min_local <= EPSILON)
                 {
                     break;
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 
     // }
 
-    printf("Rank #%d\tNumero de interacoes: %d\tMinimo encontrado: %f\n", rank, interacoes, min_local);
+    printf("Rank #%d Numero de interacoes: %d Minimo encontrado: %f\n", rank, interacoes, min_local);
 
     //MPI_Send(&min, 1, MPI_INT, 0, 124, MPI_COMM_WORLD);
     
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
     //Passo 6 -  Um dos processos (rank=0) imprimirá:
     //número de iterações e o menor valor encontrado;
-    if (world_rank == 0) {
+    if (rank == 0) {
         printf("Minimo global = %f, Interações total = %d \n", global_min, interacoes_total);
     }
 
