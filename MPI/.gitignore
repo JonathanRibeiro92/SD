@@ -1,0 +1,13 @@
+*.o
+*.obj
+*.exe
+*.out
+*.zip
+*.mod
+*.txt
+mpi_encontra_minimo
+mpi_master_slave_busca
+soma_mpi
+mpi_master_slave_desvioPadrao
+monte_carlo_mpi
+hello_mpi
