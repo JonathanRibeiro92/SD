@@ -6,7 +6,7 @@
 #include <assert.h>
 
 #define TAM_VET 1000
-#define EPSILON 0.00009
+#define EPSILON 0.00001
 
 
 int main(int argc, char *argv[])
